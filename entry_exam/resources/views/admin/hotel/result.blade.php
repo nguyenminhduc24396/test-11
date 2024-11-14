@@ -41,7 +41,6 @@
                 <p>検索結果がありません</p>
             @endif
         </div>
-        <!-- Button trigger modal -->
     </div>
 @endsection
 

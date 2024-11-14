@@ -14,7 +14,7 @@
 @endsection
 
 @section('main_contents')
-    <div class="page-wrapper create-page-wrapper">
+    <div class="container">
         <h2 class="title">ホテル編集確認</h2>
         <form action="{{ route('adminHotelEditProcess', ['hotel_id' => $hotel->hotel_id]) }}" method="post" enctype="multipart/form-data">
             @csrf
