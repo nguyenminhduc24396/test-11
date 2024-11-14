@@ -3,7 +3,7 @@
 @section('search_results')
     <div class="page-wrapper search-page-wrapper">
         <div class="search-result">
-            <h3 class="search-result-title">検索結果</h3>.
+            <h3 class="search-result-title">検索結果</h3>
             @if (!empty($hotelList))
             <table class="table table-striped">
                 <thead>
@@ -19,19 +19,15 @@
                 <tbody>
                     @foreach($hotelList as $hotel)
                         <tr>
-                            <td><a href="" target="_blank">{{ $hotel['hotel_name'] }}</a></td>
+                            <td><a href="{{ route('adminHotelEditPage', ['hotel_id' => $hotel['hotel_id']]) }}" target="_blank">{{ $hotel['hotel_name'] }}</a></td>
                             <td>{{ $hotel['prefecture']['prefecture_name'] }}</td>
                             <td>{{ (string) $hotel['created_at'] }}</td>
                             <td>{{ (string) $hotel['updated_at'] }}</td>
                             <td>
-                                <form action="{{ route('adminHotelEditPage') }}" method="get">
-                                    @csrf
-                                    <input type="hidden" name="hotel_id" value="{{ $hotel['hotel_id'] }}">
-                                    <button type="submit" class="btn btn-primary">編集</button>
-                                </form>
+                                <a href="{{ route('adminHotelEditPage', ['hotel_id' => $hotel['hotel_id']]) }}" class="btn btn-primary">編集</a>
                             </td>
                             <td>
-                                <form action="{{ route('adminHotelDeleteProcess') }}" method="post">
+                                <form action="{{ route('adminHotelDeleteProcess') }}" method="post" onsubmit="return confirmDelete()">
                                     @csrf
                                     <input type="hidden" name="hotel_id" value="{{ $hotel['hotel_id'] }}">
                                     <button type="submit" class="btn btn-danger">削除</button>
@@ -47,4 +43,12 @@
         </div>
         <!-- Button trigger modal -->
     </div>
+@endsection
+
+@section('page_js')
+    <script>
+        function confirmDelete() {
+            return confirm('本当にこのホテル情報を削除しますか？');
+        }
+    </script>
 @endsection

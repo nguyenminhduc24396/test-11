@@ -6,19 +6,27 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 use App\Models\Hotel;
-// use App\Repositories\HotelRepositoryInterface;
+use App\Repositories\HotelRepositoryInterface;
+use App\Repositories\PrefectureRepositoryInterface;
+use App\Http\Requests\Hotel\StoreRequest;
 
 class HotelController extends Controller
 {
-    // public function __construct(HotelRepositoryInterface $repository)
-    // {
-    //     parent::__construct($repository);
-    // }
-    /** get methods */
+    protected $hotelRepository;
+    protected $prefectureRepository;
+
+    public function __construct(
+        HotelRepositoryInterface $hotelRepository,
+        PrefectureRepositoryInterface $prefectureRepository
+    ) {
+        $this->hotelRepository = $hotelRepository;
+        $this->prefectureRepository = $prefectureRepository;
+    }
 
     public function showSearch(): View
     {
-        return view('admin.hotel.search');
+        $prefectures = $this->prefectureRepository->fetchAll();
+        return view('admin.hotel.search', compact('prefectures'));
     }
 
     public function showResult(): View
@@ -26,42 +34,97 @@ class HotelController extends Controller
         return view('admin.hotel.result');
     }
 
-    public function showEdit(): View
+    public function showEdit(int $hotel_id): View
     {
-        return view('admin.hotel.edit');
+        $hotel = $this->hotelRepository->findById($hotel_id);
+        $prefectures = $this->prefectureRepository->fetchAll();
+        return view('admin.hotel.edit', compact('hotel', 'prefectures'));
     }
 
     public function showCreate(): View
     {
-        return view('admin.hotel.create');
+        $prefectures = $this->prefectureRepository->fetchAll();
+        return view('admin.hotel.create', compact('prefectures'));
     }
 
-    /** post methods */
-
-    public function searchResult(Request $request): View
+    public function create(StoreRequest $request)
     {
-        $var = [];
+        $hotel = $this->hotelRepository->store($request->validated());
 
+        if ($request->hasFile('file_path')) {
+            $file = $request->file('file_path');
+            $fileName = time() . '.' . $file->getClientOriginalExtension();
+            $file->move(public_path('assets/img/hoteltype'), $fileName);
+            $hotel->file_path = 'hoteltype/' . $fileName;
+        }
+
+        $hotel->save();
+
+        return redirect()->route('adminHotelSearchPage')->with('success', 'ホテルが正常に作成されました。');
+    }
+
+
+    public function searchResult(Request $request)
+    {
         $hotelNameToSearch = $request->input('hotel_name');
-        $hotelList = Hotel::getHotelListByName($hotelNameToSearch);
+        $prefectureIdToSearch = $request->input('prefecture_id');
 
-        $var['hotelList'] = $hotelList;
+        if (empty($hotelNameToSearch) && empty($prefectureIdToSearch)) {
+            return redirect()->route('adminHotelSearchPage')->withErrors(['hotel_name' => '何も入力されていません']);
+        }
 
-        return view('admin.hotel.result', $var);
+        $hotelList = $this->hotelRepository->getHotelListByNameAndPrefecture($hotelNameToSearch, $prefectureIdToSearch);
+        $prefectures = $this->prefectureRepository->fetchAll();
+
+        return view('admin.hotel.result', [
+            'hotelList' => $hotelList,
+            'prefectures' => $prefectures,
+        ]);
     }
 
-    public function edit(Request $request): void
+    public function editConfirm(StoreRequest $request): View
     {
-        //
+        $hotel = $this->hotelRepository->findById($request->hotel_id);
+        $validated = $request->validated();
+        $prefecture = $this->prefectureRepository->findById($validated['prefecture_id']);
+        
+        $file_path = null;
+        if ($request->hasFile('file_path')) {
+            $file = $request->file('file_path');
+            $fileName = time() . '.' . $file->getClientOriginalExtension();
+            $file->move(public_path('assets/img/hoteltype'), $fileName);
+            $file_path = 'hoteltype/' . $fileName;
+        }
+
+        return view('admin.hotel.edit_confirm', [
+            'hotel' => $hotel,
+            'hotel_name' => $validated['hotel_name'],
+            'prefecture_id' => $validated['prefecture_id'],
+            'prefecture_name' => $prefecture->prefecture_name,
+            'file_path' => $file_path,
+        ]);
     }
 
-    public function create(Request $request): void
+    public function edit(Request $request)
     {
-        //
+        $hotel = $this->hotelRepository->findById($request->hotel_id);
+        $hotel->update($request->all());
+
+        return redirect()->route('adminHotelEditComplete', ['hotel_id' => $request->hotel_id]);
     }
 
-    public function delete(Request $request): void
+    public function editComplete(): View
     {
-        //
+        return view('admin.hotel.edit_complete');
+    }
+
+    public function delete(Request $request)
+    {
+        $hotel = $this->hotelRepository->findById($request->hotel_id);
+        if ($hotel) {
+            $hotel->delete();
+            return redirect()->route('adminHotelSearchPage')->with('success', 'ホテルが正常に削除されました。');
+        }
+        return redirect()->route('adminHotelSearchPage')->with('error', 'ホテルの削除に失敗しました。');
     }
 }
