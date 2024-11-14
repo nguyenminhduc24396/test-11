@@ -13,7 +13,7 @@
     </header>
     <div class="container">
         <div class="hotedetail_container">
-            <img src="/assets/img/{{ $hotel->file_path }}" alt="{{ $hotel->hotel_name }}">
+            <img src="/assets/img/{{ $hotel->file_path ?? 'hoteltype/default_hotel.png' }}" alt="{{ $hotel->hotel_name ?? 'default hotel' }}">
             <p class="hotel_title">{{ $hotel->hotel_name }}</p>
             <p class="hotel_information">
                 Lorem ipsum dolor sit amet consectetur adipisicing elit. Ullam esse beatae dolor, et facere animi distinctio facilis laboriosam obcaecati expedita minus voluptatibus aut amet, commodi quos aliquid vitae! Consequuntur, autem!

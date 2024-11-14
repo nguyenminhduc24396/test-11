@@ -26,22 +26,6 @@ class Hotel extends Model
     }
 
     /**
-     * Search hotel by hotel name
-     *
-     * @param string $hotelName
-     * @return array
-     */
-    static public function getHotelListByName(string $hotelName): array
-    {
-        $result = Hotel::where('hotel_name', '=', $hotelName)
-            ->with('prefecture')
-            ->get()
-            ->toArray();
-
-        return $result;
-    }
-
-    /**
      * Override serializeDate method to customize date format
      *
      * @param  \DateTimeInterface  $date
