@@ -11,8 +11,12 @@
         @yield('custom_css')
     </head>
     <body>
-        <x-admin.side-menu />
-        @yield('main_contents')
+        <div class="admin-layout">
+            <x-admin.side-menu />
+            <div class="main-content">
+                @yield('main_contents')
+            </div>
+        </div>
         @yield('page_js')
     </body>
 </html>
